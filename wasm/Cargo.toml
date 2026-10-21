@@ -1,0 +1,18 @@
+[package]
+name = "nh-png"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+oxipng = { version = "10.2.1", default-features = false, features = ["freestanding", "zopfli"] }
+wasm-bindgen = "0.2"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"

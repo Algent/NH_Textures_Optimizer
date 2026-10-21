@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NH Textures Optimizer</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <main>
+    <h1>NH Textures Optimizer</h1>
+    <p class="lead">
+      Lossless PNG optimisation for GTNH textures, using oxipng. Everything runs in your browser and
+      nothing is uploaded.
+    </p>
+
+    <div id="drop">
+      <strong>Drop PNGs, a .zip or a folder here</strong>
+      <span>A single PNG is returned as a PNG. Anything else is returned as a zip with the same folder
+        structure, and non-PNG files are kept unchanged.</span>
+      <span class="buttons">
+        <label class="button">Choose files<input id="pick-files" type="file" accept=".png,.zip" multiple hidden></label>
+        <label class="button">Choose folder<input id="pick-folder" type="file" webkitdirectory hidden></label>
+      </span>
+    </div>
+
+    <section id="status" hidden>
+      <progress id="bar" value="0" max="1"></progress>
+      <p id="progress"></p>
+    </section>
+
+    <section id="result" hidden>
+      <p id="summary"></p>
+      <a id="download" class="button primary"></a>
+      <details id="failed" hidden>
+        <summary><span id="failed-count"></span> file(s) could not be optimised and were kept as is</summary>
+        <ul id="failed-list"></ul>
+      </details>
+      <div id="table">
+        <table>
+          <thead><tr><th>File</th><th>Before</th><th>After</th><th>Saved</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <p id="more"></p>
+      </div>
+    </section>
+
+    <footer>
+      Pixels and colour type are never changed (grayscale/palette conversion can render differently in
+      Minecraft). Only non-rendering metadata is stripped.
+    </footer>
+  </main>
+</body>
+</html>
