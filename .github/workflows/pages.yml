@@ -27,6 +27,8 @@ jobs:
         run: |
           rustup target add wasm32-unknown-unknown
           cargo install wasm-pack --locked --version 0.15.0
+          # clang/llvm-ar are only installed under versioned paths on the runner
+          ls -d /usr/lib/llvm-*/bin | sort -V | tail -1 >> "$GITHUB_PATH"
 
       - name: Build wasm
         working-directory: wasm
