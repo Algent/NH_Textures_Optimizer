@@ -1,6 +1,6 @@
 import { unzip, zip } from 'https://cdn.jsdelivr.net/npm/fflate@0.8.2/esm/browser.js';
 
-// Must match the CI check (oxipng -o max --nc --ng --strip safe -z --fast): outputs of different
+// Must match the CI check (cli.mjs, same wasm): outputs of different
 // settings are not fixpoints of each other, so any mismatch makes CI rewrite files.
 const LEVEL = 6;
 const ZOPFLI = true;

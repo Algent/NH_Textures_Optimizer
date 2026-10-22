@@ -1,6 +1,10 @@
 # Proposed replacement for GTNH-Actions-Workflows/.github/workflows/optimize-images.yml.
-# It runs the exact wasm optimiser the site serves (via cli.mjs), so anything optimised on the site
-# passes, and anything this job fixes is what the site would have produced.
+# Proposed replacement for GTNH-Actions-Workflows/.github/workflows/optimize-images.yml.
+# Uses a pinned oxipng release with the same version and settings as NH Textures Optimizer, so files
+# optimised on the site pass. The site is only linked in messages; CI does not depend on it.
+# Settings: colour type never changed (grayscale renders lighter in ImageIO), all metadata stripped
+# except APNG chunks. Pixels are identical in ImageIO on Java 8 and 25.
+# PNGs optimised by the previous optipng job get flagged once when a PR touches them.
 name: Check for image compression
 
 on:
@@ -11,6 +15,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  OXIPNG_VERSION: 10.2.1
+  OXIPNG_SHA256: 1813750ef592c5350ca79c88f98b2c0876d05c826dc7156245256d4255c1ad17
+  OXIPNG_ARGS: -o max --nc --ng --keep acTL,fcTL,fdAT -z --fast
   SITE_URL: https://algent.github.io/NH_Textures_Optimizer/
 
 jobs:
@@ -24,12 +31,12 @@ jobs:
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
-      - name: Fetch optimizer
+      - name: Install oxipng
         run: |
-          mkdir -p "$RUNNER_TEMP/nhto/pkg"
-          for f in cli.mjs pkg/nh_png.js pkg/nh_png_bg.wasm; do
-            curl -sSfLo "$RUNNER_TEMP/nhto/$f" "$SITE_URL$f"
-          done
+          name="oxipng-$OXIPNG_VERSION-x86_64-unknown-linux-musl"
+          curl -sSfLo "$RUNNER_TEMP/oxipng.tar.gz" "https://github.com/oxipng/oxipng/releases/download/v$OXIPNG_VERSION/$name.tar.gz"
+          echo "$OXIPNG_SHA256  $RUNNER_TEMP/oxipng.tar.gz" | sha256sum -c -
+          sudo tar -xzf "$RUNNER_TEMP/oxipng.tar.gz" --strip-components=1 -C /usr/local/bin "$name/oxipng"
 
       - name: Optimize PNG files
         run: |
@@ -39,7 +46,7 @@ jobs:
             git diff -z --name-only --diff-filter=AM --no-renames "origin/$GITHUB_BASE_REF" -- '*.png'
           else
             git ls-files -z -- '*.png'
-          fi | xargs -0 -r node "$RUNNER_TEMP/nhto/cli.mjs"
+          fi | xargs -0 -r oxipng $OXIPNG_ARGS --quiet
 
       - name: Check for changes
         id: check_changes
@@ -49,7 +56,7 @@ jobs:
             echo "needs_compression=true" >> "$GITHUB_OUTPUT"
             {
               echo "### Some PNGs are not optimised"
-              echo "Run them through $SITE_URL and commit the result:"
+              echo "Run them through $SITE_URL (or \`oxipng $OXIPNG_ARGS\`, v$OXIPNG_VERSION) and commit the result:"
               echo '```'
               echo "$changed"
               echo '```'
